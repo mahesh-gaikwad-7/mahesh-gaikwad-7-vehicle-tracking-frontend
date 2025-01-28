@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Movement on Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vehicle Movement on Map</h1>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map and set the initial view to a default location (latitude, longitude)
+        var map = L.map('map').setView([17.385044, 78.486671], 13);
+
+        // Set the tile layer from OpenStreetMap with HTTPS for security
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Define a custom vehicle icon using the car image
+        var vehicleIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/mahesh-gaikwad-7/vehicle-tracking-frontend/main/assets/car.png',
+            iconSize: [32, 32],          // Adjust the size of the icon
+            iconAnchor: [16, 16],        // Adjust the anchor point of the icon
+            popupAnchor: [0, -16]        // Adjust the popup position
+        });
+
+        // Create a marker with the custom vehicle icon and add it to the map
+        var vehicleMarker = L.marker([17.385044, 78.486671], {icon: vehicleIcon}).addTo(map);
+
+        // Function to fetch the vehicle's real-time location from the backend API
+        async function fetchVehicleLocation() {
+            try {
+                const response = await fetch('https://vehicle-tracking-system-production-1366.up.railway.app/api/vehicle/location');
+                const data = await response.json();
+                if (data.latitude && data.longitude) {
+                    // Update the marker's position
+                    vehicleMarker.setLatLng([data.latitude, data.longitude]);
+                    // Optionally, center the map on the new location
+                    map.setView([data.latitude, data.longitude], 13);
+                } else {
+                    console.error('Invalid location data received:', data);
+                }
+            } catch (error) {
+                console.error('Error fetching vehicle location:', error);
+            }
+        }
+
+        // Fetch the vehicle location every 2 seconds
+        setInterval(fetchVehicleLocation, 2000);
+    </script>
+</body>
+</html>
